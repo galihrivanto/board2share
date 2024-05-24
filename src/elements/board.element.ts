@@ -1,27 +1,52 @@
-import { LitElement, css, html } from "lit";
+import { css, html } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { Ref, createRef, ref } from "lit/directives/ref.js";
+import { CanvasBoard } from "../lib/board";
+import { BrushPainter } from "../lib/brush";
+import { TailwindElement } from "./tailwind";
 
-export class Board extends LitElement {
+@customElement("app-board")
+export class Board extends TailwindElement {
+    @property({ type: Number })
+    width: number = 600;
+
+    @property({ type: Number })
+    height: number = 400;
+
+    @state()
+    board: IBoard | null = null;
+    
+    @state()
+    canvasRef: Ref<HTMLCanvasElement> = createRef();
+
     render() {
         return html`
-            <div class="board">
-                <div class="row">
-                    <div class="cell">1</div>
-                    <div class="cell">2</div>
-                    <div class="cell">3</div>
-                </div>
-                <div class="row">
-                    <div class="cell">4</div>
-                    <div class="cell">5</div>
-                    <div class="cell">6</div>
-                </div>
-                <div class="row">
-                    <div class="cell">7</div>
-                    <div class="cell">8</div>
-                    <div class="cell">9</div>
-                </div>
-            </div>
+        <div class="border border-slate-600 cursor-pointer">
+            <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
+        </div>
         `;
     }
 
-    static styles = css``
+    private initBoard() {
+        const canvas = this.canvasRef.value;
+        if (canvas) {
+            this.board = new CanvasBoard(canvas);
+            this.board?.ChangeBackgroundColor("#ffffff");
+        }
+    }
+
+    private registerPainters() {
+        if (this.board && this.canvasRef.value) {
+            this.board.RegisterPainter("brush", new BrushPainter(this.canvasRef.value));
+        }
+
+        if (this.board) {
+            this.board.SetActivePainter("brush");
+        }
+    }
+
+    firstUpdated() {
+        this.initBoard();
+        this.registerPainters();
+    }
 }
