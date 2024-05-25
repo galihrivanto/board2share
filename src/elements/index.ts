@@ -1,1 +1,1 @@
-export { XButton } from './button';
+export { Board } from './board.element';

@@ -2,7 +2,9 @@ interface IBoard {
     ChangeForegroundColor(color: string): void;
     ChangeBackgroundColor(color: string): void;
     RegisterPainter(name: string, painter: IPainter): void;
+    RegisterEraser(painter:IPainter): void;
     SetActivePainter(name: string): void;
+    SetEraseMode(active: boolean): void;
 }
 
 interface IPainter {

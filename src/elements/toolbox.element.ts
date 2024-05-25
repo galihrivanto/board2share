@@ -1,10 +1,12 @@
 import { LitElement, css, html } from "lit";
+import { customElement } from "lit/decorators.js";
 
+@customElement("app-toolbox")
 export class Toolbox extends LitElement {
     render() {
         return html`
-            <div class="toolbox">
-                <button @click=${this.handleClear}>Clear</button>
+            <div class="flex flex-row gap-2">
+                <slot></slot>
             </div>
         `;
     }

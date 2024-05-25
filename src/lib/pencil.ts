@@ -1,6 +1,6 @@
 import { BasePainter } from "./painter";
 
-export class BrushPainter extends BasePainter {     
+export class PencilPainter extends BasePainter {
     StartStroke(x: number, y: number): void {
         if (this.context) {
             this.context.beginPath();
@@ -12,7 +12,7 @@ export class BrushPainter extends BasePainter {
         if (this.context) {
             this.context.lineTo(x, y);
             this.context.strokeStyle = this.color;
-            this.context.lineWidth = this.size * 10;
+            this.context.lineWidth = this.size;
             this.context.lineCap = "round";
             this.context.lineJoin = "round";
             this.context.stroke();
@@ -23,6 +23,3 @@ export class BrushPainter extends BasePainter {
         this.StrokeTo(x, y);
     }
 }
-
-
-   
