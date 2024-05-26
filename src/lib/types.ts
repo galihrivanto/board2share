@@ -9,6 +9,7 @@ export enum StrokeState {
 
 
 export type PaintEvent = {
+    source: string;
     painter: string;
     strokeState: StrokeState;
     x: number;
@@ -26,6 +27,7 @@ export interface IBoard {
     SetStrokeSize(size: number): void;
     SetActivePainter(name: string): void;
     SetEraseMode(active: boolean): void;
+    ApplyPaint(event: PaintEvent): void;
     Clear(): void;
 }
 
@@ -35,4 +37,11 @@ export interface IPainter {
     StartStroke(x: number, y: number): void;
     StrokeTo(x: number, y: number): void;
     EndStroke(x: number, y: number): void;
+}
+
+export interface ITransport {
+    Connect(): void;
+    Disconnect(): void;
+    Send(data: any): void;
+    OnReceive?: (data: any) => void;
 }

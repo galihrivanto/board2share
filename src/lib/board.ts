@@ -199,4 +199,30 @@ export class CanvasBoard implements IBoard {
             }
         }
     }
+
+    ApplyPaint(event: PaintEvent): void {
+        if (this._painters.has(event.painter)){
+            const painter = this._painters.get(event.painter);
+            if (painter){
+                painter.SetColor(event.color);
+                painter.SetSize(event.size);
+                switch (event.strokeState){
+                    case StrokeState.Start:
+                        painter.StartStroke(event.x, event.y);
+                        break;
+                    case StrokeState.Stroke:
+                        painter.StrokeTo(event.x, event.y);
+                        break;
+                    case StrokeState.End:
+                        painter.EndStroke(event.x, event.y);
+                        break;
+                    case StrokeState.Clear:
+                        this.Clear();
+                        break;
+                    default:
+                        return;
+                }
+            }
+        }
+    }
 }
