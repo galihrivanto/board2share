@@ -37,30 +37,32 @@ export class Board extends TailwindElement {
 
     render() {
         return html`
-        <div class="flex flex-col gap-2 backdrop-blur-sm bg-white/30 p-2 rounded-lg shadow-lg">  
-            <app-toolbox>
-                <toolbox-button ?active=${this.activeTool === "pencil"} @click=${() => this.changePainter("pencil")}>
-                    <iconify-icon icon="mdi:pencil" class="text-lg"></iconify-icon>
-                </toolbox-button>
-                <toolbox-button ?active=${this.activeTool === "brush"} @click=${() => this.changePainter("brush")}>
-                    <iconify-icon icon="mdi:brush" class="text-lg"></iconify-icon>
-                </toolbox-button>
-                <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
-                    <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
-                </toolbox-button>
-                <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.toggleEraser()}>
-                    <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
-                </toolbox-button>
-                <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
-                <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
-            </app-toolbox>         
-            <div class="border border-slate-300 cursor-crosshair">
-                <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
+        <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/30 p-2 rounded-lg shadow-lg">
+            <div class="flex flex-col gap-2 ">  
+                <app-toolbox>
+                    <toolbox-button ?active=${this.activeTool === "pencil"} @click=${() => this.changePainter("pencil")}>
+                        <iconify-icon icon="mdi:pencil" class="text-lg"></iconify-icon>
+                    </toolbox-button>
+                    <toolbox-button ?active=${this.activeTool === "brush"} @click=${() => this.changePainter("brush")}>
+                        <iconify-icon icon="mdi:brush" class="text-lg"></iconify-icon>
+                    </toolbox-button>
+                    <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
+                        <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
+                    </toolbox-button>
+                    <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.toggleEraser()}>
+                        <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
+                    </toolbox-button>
+                    <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
+                    <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
+                </app-toolbox>         
+                <div class="border border-slate-300 cursor-crosshair" style="width:${this.width}px; height:${this.height}px;">
+                    <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
+                </div>
+                <color-palette @color-change=${this.handleColorChange}></color-palette>
             </div>
-            <color-palette @color-change=${this.handleColorChange}></color-palette>
         </div>
         `;
-    }
+    }  
 
     private toggleEraser() {
         this.eraseMode = !this.eraseMode;
@@ -105,6 +107,21 @@ export class Board extends TailwindElement {
         }
     }
 
+    protected override onWindowResized(): void {
+        console.log(this.isLandscape, this.screenWidth, this.screenHeight)
+        let w = this.isLandscape ? this.screenWidth : this.screenHeight;
+    
+        if (this.isLgAndUp) {
+            this.width = 800;
+            this.height = 3/4 * this.width;
+        } else {
+            this.width = w - 80;
+            this.height = 3/4 * this.width;
+        }
+
+        console.log("w", this.width, "h", this.height)
+    }
+
     updated(values: Map<string | number | symbol, unknown>) {
         if (values.has("strokeSize") && this.board) {
             this.board.SetStrokeSize(this.strokeSize);
@@ -114,5 +131,8 @@ export class Board extends TailwindElement {
     firstUpdated() {
         this.initBoard();
         this.registerPainters();
+
+        this.canvasRef.value?.addEventListener('wheel', (e) => e.preventDefault(), true);
+        this.canvasRef.value?.addEventListener('drag', (e) => e.preventDefault(), true);
     }
 }

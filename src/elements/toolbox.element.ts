@@ -6,7 +6,7 @@ import { TailwindElement } from "./tailwind";
 export class Toolbox extends TailwindElement {
     render() {
         return html`
-            <div class="flex flex-row gap-1 items-center">
+            <div class="flex flex-row flex-wrap gap-1 items-center">
                 <slot></slot>
             </div>
         `;
