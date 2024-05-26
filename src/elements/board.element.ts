@@ -51,7 +51,7 @@ export class Board extends TailwindElement {
                 <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.toggleEraser()}>
                     <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
                 </toolbox-button>
-                <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = e.target?.value }>
+                <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
                 <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
             </app-toolbox>         
             <div class="border border-slate-300 cursor-crosshair">
