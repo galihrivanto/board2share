@@ -1,10 +1,4 @@
-enum StrokeState {
-    Start = "stroke::start",
-    Stroke = "stroke::stroke",
-    End = "stroke::end",
-    StartOutside = "stroke::start::outside",
-    StrokeOutside = "stroke::stroke::outside",
-}
+import { IBoard, IPainter, PaintEvent, StrokeState } from "./types";
 
 // CanvasBoard is canvas implementation leveraging canvas element
 export class CanvasBoard implements IBoard {
@@ -17,6 +11,7 @@ export class CanvasBoard implements IBoard {
     private _foregroundColor: string = "#000000";
     private _strokeState: StrokeState = StrokeState.End;
     private _strokeSize: number = 1;
+    OnPaint?: (event: PaintEvent) => void;
 
     constructor(element: HTMLCanvasElement){
         this._canvas = element;
@@ -82,6 +77,7 @@ export class CanvasBoard implements IBoard {
         }
         
         this._activePainter.EndStroke(pos.x, pos.y);
+        this.emitPaintEvent(pos.x, pos.y);
     }
 
     private strokeMove(e: MouseEvent | Touch) {
@@ -90,7 +86,8 @@ export class CanvasBoard implements IBoard {
         const pos = this.getPointerPosition(e);
         if (!this.pointerInsideCanvas(pos.x, pos.y)) {
             if (this._strokeState === StrokeState.Stroke) {
-                this._activePainter.EndStroke(pos.x, pos.y);;
+                this._activePainter.EndStroke(pos.x, pos.y);
+                this.emitPaintEvent(pos.x, pos.y);
             }
 
             if (this._strokeState === StrokeState.Start || this._strokeState === StrokeState.StartOutside) {
@@ -113,8 +110,10 @@ export class CanvasBoard implements IBoard {
                 this._activePainter.StartStroke(pos.x, pos.y);
                 break;
             default:
-                break;
+                return;
         }
+
+        this.emitPaintEvent(pos.x, pos.y);
     }
 
     private strokeStart(e: MouseEvent | Touch) {
@@ -128,6 +127,22 @@ export class CanvasBoard implements IBoard {
         
         this._strokeState = StrokeState.Start;
         this._activePainter.StartStroke(pos.x, pos.y);
+        this.emitPaintEvent(pos.x, pos.y);
+    }
+
+    private emitPaintEvent(x: number, y: number, state?: StrokeState): void {
+        if (!this.OnPaint) return;
+
+        const event: PaintEvent = {
+            painter: this._activePainterName,
+            strokeState: state ? state : this._strokeState,
+            x: x,
+            y: y,
+            color: this._foregroundColor,
+            size: this._strokeSize
+        };
+
+        this.OnPaint(event);
     }
 
     RegisterPainter(name: string, painter: IPainter): void {
@@ -173,5 +188,15 @@ export class CanvasBoard implements IBoard {
     ChangeBackgroundColor(color: string): void {
         this._backgroundColor = color;
         this._canvas.style.backgroundColor = color;
+    }
+
+    Clear(): void {
+        if (this._canvas && this._canvas.getContext){
+            const ctx = this._canvas.getContext("2d");
+            if (ctx){
+                ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+                this.emitPaintEvent(0, 0, StrokeState.Clear);
+            }
+        }
     }
 }

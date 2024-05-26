@@ -11,6 +11,7 @@ import "iconify-icon";
 import { PencilPainter } from "../lib/pencil";
 import { SprayPainter } from "../lib/spray";
 import { EraserPainter } from "../lib/eraser";
+import { IBoard, PaintEvent } from "../lib/types";
 
 @customElement("app-board")
 export class Board extends TailwindElement {
@@ -54,6 +55,9 @@ export class Board extends TailwindElement {
                     </toolbox-button>
                     <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
                     <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
+                    <toolbox-button @click=${() => this.clearBoard()}>
+                        <iconify-icon icon="mdi:refresh" class="text-lg"></iconify-icon>
+                    </toolbox-button>
                 </app-toolbox>         
                 <div class="border border-slate-300 cursor-crosshair" style="width:${this.width}px; height:${this.height}px;">
                     <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
@@ -63,6 +67,12 @@ export class Board extends TailwindElement {
         </div>
         `;
     }  
+    
+    clearBoard() {
+        if (this.board) {
+            this.board.Clear();
+        }
+    }
 
     private toggleEraser() {
         this.eraseMode = !this.eraseMode;
@@ -87,8 +97,12 @@ export class Board extends TailwindElement {
     private initBoard() {
         const canvas = this.canvasRef.value;
         if (canvas) {
-            this.board = new CanvasBoard(canvas);
-            this.board?.ChangeBackgroundColor("#ffffff");
+            let board = new CanvasBoard(canvas);
+            board.ChangeBackgroundColor("#ffffff");
+            board.OnPaint = (event: PaintEvent) => {
+                console.log(event);
+            }
+            this.board = board;
         }
     }
 
@@ -108,7 +122,6 @@ export class Board extends TailwindElement {
     }
 
     protected override onWindowResized(): void {
-        console.log(this.isLandscape, this.screenWidth, this.screenHeight)
         let w = this.isLandscape ? this.screenWidth : this.screenHeight;
     
         if (this.isLgAndUp) {

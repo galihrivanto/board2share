@@ -1,3 +1,5 @@
+import { IPainter } from "./types";
+
 export abstract class BasePainter implements IPainter {    
     private _context: CanvasRenderingContext2D | null;
     private _color: string = "#000000";
