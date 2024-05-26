@@ -61,7 +61,7 @@ export class ColorPaletteElement extends TailwindElement {
             <div class="flex flex-wrap gap-1" style="width:${this.width}">
                 ${this.colors.map((color) => html`
                     <button 
-                        class="rounded-full w-8 h-8 border-2 ${this.color === color ? "border-blue-500" : "border-white"}"
+                        class="rounded-full w-8 h-8 border-2 ${this.color === color ? "border-blue-500" : "border-slate-300"}"
                         style="background-color: ${color}"
                         @click=${() => this.handleColorChange(color)}
                     ></button>

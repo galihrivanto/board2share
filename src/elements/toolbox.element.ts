@@ -1,11 +1,12 @@
-import { LitElement, css, html } from "lit";
+import { html } from "lit";
 import { customElement } from "lit/decorators.js";
+import { TailwindElement } from "./tailwind";
 
 @customElement("app-toolbox")
-export class Toolbox extends LitElement {
+export class Toolbox extends TailwindElement {
     render() {
         return html`
-            <div class="flex flex-row gap-2">
+            <div class="flex flex-row gap-1 items-center">
                 <slot></slot>
             </div>
         `;
@@ -15,21 +16,4 @@ export class Toolbox extends LitElement {
         this.dispatchEvent(new CustomEvent("clear"));
     }
 
-    static styles = css`
-        .toolbox {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-
-        button {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-        }
-        `
 }

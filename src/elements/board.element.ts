@@ -7,6 +7,7 @@ import { TailwindElement } from "./tailwind";
 import "./color-palette.element";
 import "./toolbox.element";
 import "./toolbox-button.element"
+import "iconify-icon";
 import { PencilPainter } from "../lib/pencil";
 import { SprayPainter } from "../lib/spray";
 import { EraserPainter } from "../lib/eraser";
@@ -29,18 +30,31 @@ export class Board extends TailwindElement {
     activeTool: string = "pencil";
 
     @state()
+    strokeSize: number = 1;
+
+    @state()
     eraseMode: boolean = false;
 
     render() {
         return html`
-        <div class="flex flex-col gap-4">  
+        <div class="flex flex-col gap-2 backdrop-blur-sm bg-white/30 p-2 rounded-lg shadow-lg">  
             <app-toolbox>
-                <toolbox-button @click=${() => this.changePainter("pencil")}>Pencil</toolbox-button>
-                <toolbox-button @click=${() => this.changePainter("brush")}>Brush</toolbox-button>
-                <toolbox-button @click=${() => this.changePainter("spray")}>Spray</toolbox-button>
-                <toolbox-button @click=${() => this.toggleEraser()}>${this.eraseMode ? "Disable" : "Enable"} Eraser</toolbox-button>
+                <toolbox-button ?active=${this.activeTool === "pencil"} @click=${() => this.changePainter("pencil")}>
+                    <iconify-icon icon="mdi:pencil" class="text-lg"></iconify-icon>
+                </toolbox-button>
+                <toolbox-button ?active=${this.activeTool === "brush"} @click=${() => this.changePainter("brush")}>
+                    <iconify-icon icon="mdi:brush" class="text-lg"></iconify-icon>
+                </toolbox-button>
+                <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
+                    <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
+                </toolbox-button>
+                <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.toggleEraser()}>
+                    <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
+                </toolbox-button>
+                <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = e.target?.value }>
+                <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
             </app-toolbox>         
-            <div class="border border-slate-600 cursor-pointer">
+            <div class="border border-slate-300 cursor-crosshair">
                 <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
             </div>
             <color-palette @color-change=${this.handleColorChange}></color-palette>
@@ -49,7 +63,6 @@ export class Board extends TailwindElement {
     }
 
     private toggleEraser() {
-        console.log("toggle eraser", this.eraseMode)
         this.eraseMode = !this.eraseMode;
         if (this.board) {
             this.board.SetEraseMode(this.eraseMode);
@@ -57,6 +70,7 @@ export class Board extends TailwindElement {
     }
 
     private changePainter(name: string) {
+        this.activeTool = name;
         if (this.board) {
             this.board.SetActivePainter(name);
         }
@@ -88,6 +102,12 @@ export class Board extends TailwindElement {
         if (this.board) {
             this.activeTool = "pencil";
             this.board.SetActivePainter("pencil");
+        }
+    }
+
+    updated(values: Map<string | number | symbol, unknown>) {
+        if (values.has("strokeSize") && this.board) {
+            this.board.SetStrokeSize(this.strokeSize);
         }
     }
 

@@ -11,7 +11,7 @@ export class EraserPainter extends BasePainter {
         if (this.context) {
             this.context.lineTo(x, y);
             this.context.strokeStyle = this.color;
-            this.context.lineWidth = this.size;
+            this.context.lineWidth = this.size * 5;
             this.context.lineCap = "round";
             this.context.lineJoin = "round";
             this.context.stroke();

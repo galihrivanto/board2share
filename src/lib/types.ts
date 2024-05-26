@@ -3,6 +3,7 @@ interface IBoard {
     ChangeBackgroundColor(color: string): void;
     RegisterPainter(name: string, painter: IPainter): void;
     RegisterEraser(painter:IPainter): void;
+    SetStrokeSize(size: number): void;
     SetActivePainter(name: string): void;
     SetEraseMode(active: boolean): void;
 }

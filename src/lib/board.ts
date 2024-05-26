@@ -16,6 +16,7 @@ export class CanvasBoard implements IBoard {
     private _backgroundColor: string = "#ffffff";
     private _foregroundColor: string = "#000000";
     private _strokeState: StrokeState = StrokeState.End;
+    private _strokeSize: number = 1;
 
     constructor(element: HTMLCanvasElement){
         this._canvas = element;
@@ -137,11 +138,19 @@ export class CanvasBoard implements IBoard {
         this._eraser = painter;
     }
 
+    SetStrokeSize(size: number): void {
+        this._strokeSize = size;
+        if (this._activePainter !== null){
+            this._activePainter.SetSize(size);
+        }
+    }
+
     SetActivePainter(name: string): void {
         if (this._painters.has(name)){
             this._activePainterName = name;
             this._activePainter = this._painters.get(name) || null;
             this.ChangeForegroundColor(this._foregroundColor);
+            this.SetStrokeSize(this._strokeSize);
         }
     }
 
