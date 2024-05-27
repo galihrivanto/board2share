@@ -137,10 +137,10 @@ export class CanvasBoard implements IBoard {
         const event: PaintEvent = {
             painter: this._activePainterName,
             strokeState: state ? state : this._strokeState,
-            x: x,
-            y: y,
+            x: x / this._unit,
+            y: y / this._unit,
             color: this._foregroundColor,
-            size: this._strokeSize
+            size: this._strokeSize / this._unit
         };
 
         this.OnPaint(event);
