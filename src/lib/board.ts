@@ -191,14 +191,20 @@ export class CanvasBoard implements IBoard {
         this._canvas.style.backgroundColor = color;
     }
 
-    Clear(): void {
+    private clearCanvas(emit: boolean): void {
         if (this._canvas && this._canvas.getContext){
             const ctx = this._canvas.getContext("2d");
             if (ctx){
                 ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-                this.emitPaintEvent(0, 0, StrokeState.Clear);
+                if (emit){
+                    this.emitPaintEvent(0, 0, StrokeState.Clear);
+                }
             }
         }
+    }
+
+    Clear(): void {
+        this.clearCanvas(true);
     }
 
     Resize(width: number, height: number, unit: number): void {
@@ -230,7 +236,7 @@ export class CanvasBoard implements IBoard {
                         painter.EndStroke(x, y);
                         break;
                     case StrokeState.Clear:
-                        this.Clear();
+                        this.clearCanvas(false);
                         break;
                     default:
                         return;

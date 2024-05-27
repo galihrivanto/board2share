@@ -104,7 +104,7 @@ export class Board extends TailwindElement {
                     </toolbox-group>
                 </app-toolbox> 
                 ${shareToolbar}        
-                <div class="border border-slate-300 cursor-crosshair" style="width:${this.width}px; height:${this.height}px;">
+                <div class="cursor-crosshair flex justify-center bg-slate-400">
                     <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
                 </div>
                 <color-palette @color-change=${this.handleColorChange}></color-palette>
@@ -199,6 +199,7 @@ export class Board extends TailwindElement {
         this.registerPainters();
         this.initShareID();
         this.initTransport();
+        this.onWindowResized();
 
         this.canvasRef.value?.addEventListener('wheel', (e) => e.preventDefault(), true);
         this.canvasRef.value?.addEventListener('drag', (e) => e.preventDefault(), true);
