@@ -11,5 +11,7 @@ Copy share url to another tab, browser or other devices
 
 # **Credits**
 - [Vercel](https://vercel.com) - Frontend Application Host
-- [Mosquitto](wss://test.mosquitto.org:8081) - Message Transport
+- [Mosquitto](https://test.mosquitto.org) - Message Transport
+- [TailwindCSS](https://tailwindcss.com/) - CSS framework
+- [Iconify](https://iconify.design/) - Icon
 

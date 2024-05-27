@@ -35,6 +35,9 @@ export class Board extends TailwindElement {
     canvasRef: Ref<HTMLCanvasElement> = createRef();
 
     @state()
+    containerRef: Ref<HTMLDivElement> = createRef();
+
+    @state()
     activeTool: string = "pencil";
 
     @state()
@@ -104,7 +107,7 @@ export class Board extends TailwindElement {
                     </toolbox-group>
                 </app-toolbox> 
                 ${shareToolbar}        
-                <div class="cursor-crosshair flex justify-center bg-slate-400">
+                <div ${ref(this.containerRef)} class="cursor-crosshair flex justify-center bg-slate-400">
                     <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
                 </div>
                 <color-palette @color-change=${this.handleColorChange}></color-palette>
@@ -201,8 +204,12 @@ export class Board extends TailwindElement {
         this.initTransport();
         this.onWindowResized();
 
-        this.canvasRef.value?.addEventListener('wheel', (e) => e.preventDefault(), true);
-        this.canvasRef.value?.addEventListener('drag', (e) => e.preventDefault(), true);
+        this.containerRef.value?.addEventListener('wheel', (e) => {
+            e.preventDefault()
+        }, true);
+        this.containerRef.value?.addEventListener('touchstart', (e) => {
+            e.preventDefault()
+        }, true);
     }
 
     disconnectedCallback(): void {
