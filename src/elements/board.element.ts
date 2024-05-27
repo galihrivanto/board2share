@@ -177,9 +177,11 @@ export class Board extends TailwindElement {
         if (this.isLgAndUp) {
             this.width = 800;
             this.height = 3/4 * this.width;
+            this.board?.Resize(this.width, this.height, this.width / 800);
         } else {
             this.width = w - 80;
             this.height = 3/4 * this.width;
+            this.board?.Resize(this.width, this.height, this.width / 800);
         }
 
         console.log("w", this.width, "h", this.height)

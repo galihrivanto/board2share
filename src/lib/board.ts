@@ -11,6 +11,7 @@ export class CanvasBoard implements IBoard {
     private _foregroundColor: string = "#000000";
     private _strokeState: StrokeState = StrokeState.End;
     private _strokeSize: number = 1;
+    private _unit: number = 1;
     OnPaint?: (event: PaintEvent) => void;
 
     constructor(element: HTMLCanvasElement){
@@ -164,8 +165,8 @@ export class CanvasBoard implements IBoard {
         if (this._painters.has(name)){
             this._activePainterName = name;
             this._activePainter = this._painters.get(name) || null;
-            this.ChangeForegroundColor(this._foregroundColor);
-            this.SetStrokeSize(this._strokeSize);
+            this._activePainter?.SetColor(this._foregroundColor);
+            this._activePainter?.SetSize(this._strokeSize);
         }
     }
 
@@ -200,21 +201,33 @@ export class CanvasBoard implements IBoard {
         }
     }
 
+    Resize(width: number, height: number, unit: number): void {
+        const scale = width / this._canvas.width;
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this._unit = unit;
+        this._canvas.getContext("2d")?.scale(scale, scale);
+    }
+
     ApplyPaint(event: PaintEvent): void {
         if (this._painters.has(event.painter)){
             const painter = this._painters.get(event.painter);
             if (painter){
+                const size = event.size * this._unit;
+                const x = event.x * this._unit;
+                const y = event.y * this._unit;
+
                 painter.SetColor(event.color);
-                painter.SetSize(event.size);
+                painter.SetSize(size);
                 switch (event.strokeState){
                     case StrokeState.Start:
-                        painter.StartStroke(event.x, event.y);
+                        painter.StartStroke(x, y);
                         break;
                     case StrokeState.Stroke:
-                        painter.StrokeTo(event.x, event.y);
+                        painter.StrokeTo(x, y);
                         break;
                     case StrokeState.End:
-                        painter.EndStroke(event.x, event.y);
+                        painter.EndStroke(x, y);
                         break;
                     case StrokeState.Clear:
                         this.Clear();

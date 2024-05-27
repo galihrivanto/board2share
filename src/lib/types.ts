@@ -29,6 +29,7 @@ export interface IBoard {
     SetEraseMode(active: boolean): void;
     ApplyPaint(event: PaintEvent): void;
     Clear(): void;
+    Resize(width: number, height: number, unit: number): void;
 }
 
 export interface IPainter {
