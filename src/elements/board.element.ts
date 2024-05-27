@@ -1,4 +1,4 @@
-import { TemplateResult, html, supportsAdoptingStyleSheets } from "lit";
+import { TemplateResult, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Ref, createRef, ref } from "lit/directives/ref.js";
 import { CanvasBoard } from "../lib/board";

@@ -9,7 +9,7 @@ export enum StrokeState {
 
 
 export type PaintEvent = {
-    source: string;
+    source?: string;
     painter: string;
     strokeState: StrokeState;
     x: number;
