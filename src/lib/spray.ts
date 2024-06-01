@@ -16,7 +16,7 @@ export class SprayPainter extends BasePainter {
                 const offsetX = Math.random() * radius * 2 - radius;
                 const offsetY = Math.random() * radius * 2 - radius;
                 if (offsetX * offsetX + offsetY * offsetY <= radius * radius) {
-                    this.context.fillStyle = this.color;
+                    this.context.fillStyle = this.foregroundColor;
                     this.context.fillRect(x + offsetX, y + offsetY, 1, 1);
                 }
             }

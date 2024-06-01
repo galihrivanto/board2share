@@ -4,7 +4,6 @@ import { IBoard, IPainter, PaintEvent, StrokeState } from "./types";
 export class CanvasBoard implements IBoard {
     private _canvas: HTMLCanvasElement;
     private _painters: Map<string, IPainter> = new Map<string, IPainter>();
-    private _eraser: IPainter | null = null;
     private _activePainterName: string = "";
     private _activePainter: IPainter | null = null;
     private _backgroundColor: string = "#ffffff";
@@ -139,7 +138,8 @@ export class CanvasBoard implements IBoard {
             strokeState: state ? state : this._strokeState,
             x: x / this._unit,
             y: y / this._unit,
-            color: this._foregroundColor,
+            foregroundColor: this._foregroundColor,
+            backgroundColor: this._backgroundColor,
             size: this._strokeSize / this._unit
         };
 
@@ -148,10 +148,6 @@ export class CanvasBoard implements IBoard {
 
     RegisterPainter(name: string, painter: IPainter): void {
         this._painters.set(name, painter);
-    }
-
-    RegisterEraser(painter: IPainter): void {
-        this._eraser = painter;
     }
 
     SetStrokeSize(size: number): void {
@@ -165,30 +161,25 @@ export class CanvasBoard implements IBoard {
         if (this._painters.has(name)){
             this._activePainterName = name;
             this._activePainter = this._painters.get(name) || null;
-            this._activePainter?.SetColor(this._foregroundColor);
+            this._activePainter?.SetForegroundColor(this._foregroundColor);
+            this._activePainter?.SetBackgroundColor(this._backgroundColor);
             this._activePainter?.SetSize(this._strokeSize);
-        }
-    }
-
-    SetEraseMode(active: boolean): void {
-        if (active && this._eraser !== null){
-            this._activePainter = this._eraser || null;
-            this._activePainter.SetColor(this._backgroundColor);
-        } else {
-            this.SetActivePainter(this._activePainterName);
         }
     }
 
     ChangeForegroundColor(color: string): void {
         this._foregroundColor = color;
         if (this._activePainter !== null){
-            this._activePainter.SetColor(color);
+            this._activePainter.SetForegroundColor(color);
         }
     }
 
     ChangeBackgroundColor(color: string): void {
         this._backgroundColor = color;
         this._canvas.style.backgroundColor = color;
+        if (this._activePainter !== null){
+            this._activePainter.SetBackgroundColor(color);
+        }
     }
 
     private clearCanvas(emit: boolean): void {
@@ -223,7 +214,8 @@ export class CanvasBoard implements IBoard {
                 const x = event.x * this._unit;
                 const y = event.y * this._unit;
 
-                painter.SetColor(event.color);
+                painter.SetForegroundColor(event.foregroundColor);
+                painter.SetBackgroundColor(event.backgroundColor);
                 painter.SetSize(size);
                 switch (event.strokeState){
                     case StrokeState.Start:

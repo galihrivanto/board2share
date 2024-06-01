@@ -11,7 +11,7 @@ export class PencilPainter extends BasePainter {
     StrokeTo(x: number, y: number): void {
         if (this.context) {
             this.context.lineTo(x, y);
-            this.context.strokeStyle = this.color;
+            this.context.strokeStyle = this.foregroundColor;
             this.context.lineWidth = this.size;
             this.context.lineCap = "round";
             this.context.lineJoin = "round";

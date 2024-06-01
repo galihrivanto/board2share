@@ -14,7 +14,8 @@ export type PaintEvent = {
     strokeState: StrokeState;
     x: number;
     y: number;
-    color: string;
+    foregroundColor: string;
+    backgroundColor: string;
     size: number;
 }
 
@@ -23,17 +24,16 @@ export interface IBoard {
     ChangeForegroundColor(color: string): void;
     ChangeBackgroundColor(color: string): void;
     RegisterPainter(name: string, painter: IPainter): void;
-    RegisterEraser(painter:IPainter): void;
     SetStrokeSize(size: number): void;
     SetActivePainter(name: string): void;
-    SetEraseMode(active: boolean): void;
     ApplyPaint(event: PaintEvent): void;
     Clear(): void;
     Resize(width: number, height: number, unit: number): void;
 }
 
 export interface IPainter {
-    SetColor(color: string): void;
+    SetForegroundColor(color: string): void;
+    SetBackgroundColor(color: string): void;
     SetSize(size: number): void;
     StartStroke(x: number, y: number): void;
     StrokeTo(x: number, y: number): void;

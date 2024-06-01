@@ -2,7 +2,8 @@ import { IPainter } from "./types";
 
 export abstract class BasePainter implements IPainter {    
     private _context: CanvasRenderingContext2D | null;
-    private _color: string = "#000000";
+    private _foregroundColor: string = "#000000";
+    private _backgroundColor: string = "#FFFFFF";
     private _size: number = 1;
 
     constructor(canvas: HTMLCanvasElement){
@@ -13,16 +14,24 @@ export abstract class BasePainter implements IPainter {
         return this._context;
     }
 
-    protected get color(): string {
-        return this._color;
+    protected get foregroundColor(): string {
+        return this._foregroundColor;
+    }
+
+    protected get backgroundColor(): string {
+        return this._backgroundColor;
     }
 
     protected get size(): number {
         return this._size;
     }
 
-    SetColor(color: string): void {
-        this._color = color;
+    SetForegroundColor(color: string): void {
+        this._foregroundColor = color;
+    }
+
+    SetBackgroundColor(color: string): void {
+        this._backgroundColor = color;
     }
 
     SetSize(size: number): void {

@@ -91,7 +91,7 @@ export class Board extends TailwindElement {
                         <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
                             <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
                         </toolbox-button>
-                        <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.toggleEraser()}>
+                        <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.changePainter("eraser")}>
                             <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
                         </toolbox-button>
                         <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
@@ -126,13 +126,6 @@ export class Board extends TailwindElement {
         return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
 
-    private toggleEraser() {
-        this.eraseMode = !this.eraseMode;
-        if (this.board) {
-            this.board.SetEraseMode(this.eraseMode);
-        }
-    }
-
     private changePainter(name: string) {
         this.activeTool = name;
         if (this.board) {
@@ -164,8 +157,7 @@ export class Board extends TailwindElement {
             this.board.RegisterPainter("pencil", new PencilPainter(this.canvasRef.value));
             this.board.RegisterPainter("brush", new BrushPainter(this.canvasRef.value));
             this.board.RegisterPainter("spray", new SprayPainter(this.canvasRef.value));
-            
-            this.board.RegisterEraser(new EraserPainter(this.canvasRef.value));
+            this.board.RegisterPainter("eraser", new EraserPainter(this.canvasRef.value));
         }
 
         if (this.board) {
