@@ -73,11 +73,11 @@ export class PaintBucketPainter extends BasePainter {
         this.floodFill(x, y, targetColor, replacementColor);
     }
 
-    StrokeTo(x: number, y: number): void {
+    StrokeTo(_x: number, _y: number): void {
         // nothing to do
     }
 
-    EndStroke(x: number, y: number): void {
+    EndStroke(_x: number, _y: number): void {
         // nothing to do
     }
     
