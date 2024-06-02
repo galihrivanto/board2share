@@ -6,8 +6,8 @@ export class CanvasBoard implements IBoard {
     private _painters: Map<string, IPainter> = new Map<string, IPainter>();
     private _activePainterName: string = "";
     private _activePainter: IPainter | null = null;
-    private _backgroundColor: string = "#ffffff";
-    private _foregroundColor: string = "#000000";
+    private _backgroundColor: string = "rgba(255,255,255,1)";
+    private _foregroundColor: string = "rgba(0,0,0,1)";
     private _strokeState: StrokeState = StrokeState.End;
     private _strokeSize: number = 1;
     private _unit: number = 1;
@@ -15,6 +15,7 @@ export class CanvasBoard implements IBoard {
 
     constructor(element: HTMLCanvasElement){
         this._canvas = element;
+        this.clearCanvas(false);
 
         this.setupEventListeners();
     }

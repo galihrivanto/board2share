@@ -13,6 +13,7 @@ import { SprayPainter } from "../lib/spray";
 import { EraserPainter } from "../lib/eraser";
 import { IBoard, ITransport, PaintEvent } from "../lib/types";
 import { MQTTTransport } from "../lib/mqqt_transport";
+import { PaintBucketPainter } from "../lib/paint_bucket";
 
 @customElement("app-board")
 export class Board extends TailwindElement {
@@ -91,6 +92,9 @@ export class Board extends TailwindElement {
                         <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
                             <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
                         </toolbox-button>
+                        <toolbox-button ?active=${this.activeTool === "paint_bucket"} @click=${() => this.changePainter("paint_bucket")}>
+                            <iconify-icon icon="mdi:paint-bucket" class="text-lg"></iconify-icon>
+                        </toolbox-button>
                         <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.changePainter("eraser")}>
                             <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
                         </toolbox-button>
@@ -157,6 +161,7 @@ export class Board extends TailwindElement {
             this.board.RegisterPainter("pencil", new PencilPainter(this.canvasRef.value));
             this.board.RegisterPainter("brush", new BrushPainter(this.canvasRef.value));
             this.board.RegisterPainter("spray", new SprayPainter(this.canvasRef.value));
+            this.board.RegisterPainter("paint_bucket", new PaintBucketPainter(this.canvasRef.value));
             this.board.RegisterPainter("eraser", new EraserPainter(this.canvasRef.value));
         }
 

@@ -1,17 +1,27 @@
 import { IPainter } from "./types";
 
-export abstract class BasePainter implements IPainter {    
+export abstract class BasePainter implements IPainter {  
+    private _canvas: HTMLCanvasElement | null;  
     private _context: CanvasRenderingContext2D | null;
     private _foregroundColor: string = "#000000";
     private _backgroundColor: string = "#FFFFFF";
     private _size: number = 1;
 
     constructor(canvas: HTMLCanvasElement){
-        this._context = canvas.getContext("2d");
+        this._canvas = canvas;
+        this._context = canvas.getContext("2d", { willReadFrequently: true });
     }    
 
     protected get context(): CanvasRenderingContext2D | null {
         return this._context;
+    }
+
+    protected get width(): number {
+        return this._canvas?.width || 0;
+    }
+
+    protected get height(): number {
+        return this._canvas?.height || 0;
     }
 
     protected get foregroundColor(): string {
