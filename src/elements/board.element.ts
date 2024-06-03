@@ -112,7 +112,7 @@ export class Board extends TailwindElement {
                 </app-toolbox> 
                 ${shareToolbar}        
                 <div ${ref(this.containerRef)} class="cursor-crosshair flex justify-center bg-slate-400">
-                    <canvas ${ref(this.canvasRef)} width=${this.width} height=${this.height}></canvas>
+                    <canvas ${ref(this.canvasRef)}></canvas>
                 </div>
                 <color-palette @color-change=${this.handleColorChange}></color-palette>
             </div>
