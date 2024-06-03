@@ -200,11 +200,38 @@ export class CanvasBoard implements IBoard {
     }
 
     Resize(width: number, height: number, unit: number): void {
-        const scale = width / this._canvas.width;
-        this._canvas.width = width;
-        this._canvas.height = height;
-        this._unit = unit;
-        this._canvas.getContext("2d")?.scale(scale, scale);
+        // save current image data
+        const ctx = this._canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Save the current canvas content as an image data URL
+        const dataURL = this._canvas.toDataURL();
+
+        // Create a new image object
+        const img = new Image();
+
+        // Set the source of the image to the data URL
+        img.src = dataURL;
+
+        // Once the image has loaded, resize the canvas and redraw the image
+        img.onload = () => {
+            // Save the original canvas size
+            const oldWidth = this._canvas.width;
+            const oldHeight = this._canvas.height;
+
+            // Resize the canvas
+            this._canvas.width = width;
+            this._canvas.height = height;
+            this._unit = unit;
+
+            // Clear the canvas and redraw the image with high quality scaling
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw the image on the resized canvas, scaling it to fit
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, oldWidth, oldHeight, 0, 0, width, height);
+        };
     }
 
     ApplyPaint(event: PaintEvent): void {
