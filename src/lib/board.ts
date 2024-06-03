@@ -228,6 +228,9 @@ export class CanvasBoard implements IBoard {
                     case StrokeState.End:
                         painter.EndStroke(x, y);
                         break;
+                    case StrokeState.PaintBucket:
+                        painter.EndStroke(x, y);
+                        break
                     case StrokeState.Clear:
                         this.clearCanvas(false);
                         break;

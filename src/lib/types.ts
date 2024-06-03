@@ -4,6 +4,7 @@ export enum StrokeState {
     End = "stroke::end",
     StartOutside = "stroke::start::outside",
     StrokeOutside = "stroke::stroke::outside",
+    PaintBucket = "paint_bucket",
     Clear = "clear"
 }
 
