@@ -1,31 +1,53 @@
 import { BasePainter } from "./painter";
 import Queue from "./queue";
 
-export class PaintBucketPainter extends BasePainter {
-    private getColorAtPixel(x: number, y: number): number[] {
-        if (!this.context) return [0, 0, 0, 0];
+interface color {  
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}
 
-        const pixel = this.context?.getImageData(x, y, 1, 1).data;
-        return Array.from(pixel);
+export class PaintBucketPainter extends BasePainter {
+    private getColorAtPixel(imageData: ImageData, x: number, y: number): color {
+        const data = imageData.data
+        return {
+            r: data[4 * (this.width * y + x) + 0],
+            g: data[4 * (this.width * y + x) + 1],
+            b: data[4 * (this.width * y + x) + 2],
+            a: data[4 * (this.width * y + x) + 3]
+        }
     }
 
-    private hexToRgba(hex: string, alpha: number = 255): number[] {
+    private setColorAtPixel(imageData: ImageData, color: color, x: number, y: number) {
+        const data = imageData.data
+
+        data[4 * (this.width * y + x) + 0] = color.r & 0xff
+        data[4 * (this.width * y + x) + 1] = color.g & 0xff
+        data[4 * (this.width * y + x) + 2] = color.b & 0xff
+        data[4 * (this.width * y + x) + 3] = color.a & 0xff
+    }
+
+    private hexToRgba(hex: string, a: number = 255): color {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
 
-        return [r, g, b, alpha];
+        return {r,g, b, a};
     }
 
-    private colorsMatch(a: number[], b: number[], tolerance: number = 20): boolean {
-        return Math.abs(a[0] - b[0]) <= tolerance &&
-               Math.abs(a[1] - b[1]) <= tolerance &&
-               Math.abs(a[2] - b[2]) <= tolerance &&
-               Math.abs(a[3] - b[3]) <= tolerance;
+    private colorsMatch(a: color, b: color, tolerance: number = 20): boolean {
+        return Math.abs(a.r - b.r) <= tolerance &&
+               Math.abs(a.g - b.g) <= tolerance &&
+               Math.abs(a.b - b.b) <= tolerance &&
+               Math.abs(a.a - b.a) <= tolerance;
     }
 
-    private floodFill(x: number, y: number, targetColor: number[], fillColor: number[]): void {
+    private floodFill(x: number, y: number, fillColor: color): void {
         if (!this.context) return;
+
+        const data = this.context.getImageData(0, 0, this.width, this.height);
+        const targetColor = this.getColorAtPixel(data, x, y);
 
         if (this.colorsMatch(targetColor, fillColor)) {
             return;
@@ -41,11 +63,10 @@ export class PaintBucketPainter extends BasePainter {
             if (visited[curX][curY]) continue;
 
             visited[curX][curY] = true;
-            const currentColor = this.getColorAtPixel(curX, curY);
+            const currentColor = this.getColorAtPixel(data, curX, curY);
     
             if (this.colorsMatch(currentColor, targetColor)) {
-                this.context.fillStyle = `rgba(${fillColor[0]}, ${fillColor[1]}, ${fillColor[2]}, ${fillColor[3] / 255})`;
-                this.context.fillRect(curX, curY, 1, 1);
+                this.setColorAtPixel(data, fillColor, curX, curY);
 
                 const neighbors: [number, number][] = [
                     [curX - 1, curY],
@@ -61,24 +82,24 @@ export class PaintBucketPainter extends BasePainter {
                 }
             } 
         }
+
+        this.context.putImageData(data, 0, 0);
     }
    
-    StartStroke(x: number, y: number): void {
-        if (!this.context) return;
-
-        const targetColor = this.getColorAtPixel(x, y);
-        console.log('target:', targetColor);
-        const replacementColor = this.hexToRgba(this.foregroundColor);
-        console.log('replacement:', replacementColor);
-        this.floodFill(x, y, targetColor, replacementColor);
+    StartStroke(_x: number, _y: number): void {
+        // nothing to do
     }
 
     StrokeTo(_x: number, _y: number): void {
         // nothing to do
     }
 
-    EndStroke(_x: number, _y: number): void {
-        // nothing to do
+    EndStroke(x: number, y: number): void {
+        if (!this.context) return;
+
+        const replacementColor = this.hexToRgba(this.foregroundColor);
+        console.log('replacement:', replacementColor);
+        this.floodFill(Math.round(x), Math.round(y), replacementColor);
     }
     
 }
