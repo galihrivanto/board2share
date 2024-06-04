@@ -105,6 +105,9 @@ export class Board extends TailwindElement {
                         <toolbox-button @click=${() => this.clearBoard()}>
                             <iconify-icon icon="mdi:refresh" class="text-lg"></iconify-icon>
                         </toolbox-button>
+                        <toolbox-button @click=${() => this.exportBoard()}>
+                            <iconify-icon icon="mdi:download" class="text-lg"></iconify-icon>
+                        </toolbox-button>
                         <toolbox-button @click=${() => this.showShareToolbar = !this.showShareToolbar}>
                             <iconify-icon icon="mdi:share-variant" class="text-lg"></iconify-icon>
                         </toolbox-button>
@@ -123,6 +126,12 @@ export class Board extends TailwindElement {
     private clearBoard() {
         if (this.board) {
             this.board.Clear();
+        }
+    }
+
+    private exportBoard() {
+        if (this.board) {
+            this.board.Export();
         }
     }
 

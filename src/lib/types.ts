@@ -4,7 +4,6 @@ export enum StrokeState {
     End = "stroke::end",
     StartOutside = "stroke::start::outside",
     StrokeOutside = "stroke::stroke::outside",
-    PaintBucket = "paint_bucket",
     Clear = "clear"
 }
 
@@ -30,6 +29,7 @@ export interface IBoard {
     ApplyPaint(event: PaintEvent): void;
     Clear(): void;
     Resize(width: number, height: number, unit: number): void;
+    Export(): void;
 }
 
 export interface IPainter {

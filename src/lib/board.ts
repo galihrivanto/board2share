@@ -187,7 +187,8 @@ export class CanvasBoard implements IBoard {
         if (this._canvas && this._canvas.getContext){
             const ctx = this._canvas.getContext("2d");
             if (ctx){
-                ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+                ctx.fillStyle = this._backgroundColor;
+                ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
                 if (emit){
                     this.emitPaintEvent(0, 0, StrokeState.Clear);
                 }
@@ -255,9 +256,6 @@ export class CanvasBoard implements IBoard {
                     case StrokeState.End:
                         painter.EndStroke(x, y);
                         break;
-                    case StrokeState.PaintBucket:
-                        painter.EndStroke(x, y);
-                        break
                     case StrokeState.Clear:
                         this.clearCanvas(false);
                         break;
@@ -266,5 +264,14 @@ export class CanvasBoard implements IBoard {
                 }
             }
         }
+    }
+
+    Export(): void {
+        const dataURL = this._canvas.toDataURL();
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = `canvas-${Date.now()}.png`;
+        a.click();
+        a.remove();
     }
 }
