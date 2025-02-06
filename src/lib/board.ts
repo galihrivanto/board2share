@@ -4,6 +4,7 @@ import { IBoard, IPainter, PaintEvent, StrokeState } from "./types";
 export class CanvasBoard implements IBoard {
     private _canvas: HTMLCanvasElement;
     private _painters: Map<string, IPainter> = new Map<string, IPainter>();
+    private _activePainterInstances: Map<string, IPainter> = new Map<string, IPainter>();
     private _activePainterName: string = "";
     private _activePainter: IPainter | null = null;
     private _backgroundColor: string = "rgba(255,255,255,1)";
@@ -236,33 +237,47 @@ export class CanvasBoard implements IBoard {
     }
 
     ApplyPaint(event: PaintEvent): void {
-        if (this._painters.has(event.painter)){
-            const painter = this._painters.get(event.painter);
-            if (painter){
-                const size = event.size * this._unit;
-                const x = event.x * this._unit;
-                const y = event.y * this._unit;
-
-                painter.SetForegroundColor(event.foregroundColor);
-                painter.SetBackgroundColor(event.backgroundColor);
-                painter.SetSize(size);
-                switch (event.strokeState){
-                    case StrokeState.Start:
-                        painter.StartStroke(x, y);
-                        break;
-                    case StrokeState.Stroke:
-                        painter.StrokeTo(x, y);
-                        break;
-                    case StrokeState.End:
-                        painter.EndStroke(x, y);
-                        break;
-                    case StrokeState.Clear:
-                        this.clearCanvas(false);
-                        break;
-                    default:
-                        return;
-                }
-            }
+        if (!this._painters.has(event.painter)) return;
+        
+        // Get or create painter instance for this source
+        const sourceKey = `${event.painter}-${event.source}`;
+        let painter = this._activePainterInstances.get(sourceKey);
+        
+        if (!painter) {
+            // Clone the original painter for this source
+            painter = Object.create(this._painters.get(event.painter)!);
+            if (!painter) return;
+            
+            this._activePainterInstances.set(sourceKey, painter);
+        }
+    
+        const size = event.size * this._unit;
+        const x = event.x * this._unit;
+        const y = event.y * this._unit;
+    
+        painter.SetForegroundColor(event.foregroundColor);
+        painter.SetBackgroundColor(event.backgroundColor);
+        painter.SetSize(size);
+        
+        switch (event.strokeState) {
+            case StrokeState.Start:
+                painter.StartStroke(x, y);
+                break;
+            case StrokeState.Stroke:
+                painter.StrokeTo(x, y);
+                break;
+            case StrokeState.End:
+                painter.EndStroke(x, y);
+                // Clean up the painter instance after stroke ends
+                this._activePainterInstances.delete(sourceKey);
+                break;
+            case StrokeState.Clear:
+                this.clearCanvas(false);
+                // Clear all active painter instances
+                this._activePainterInstances.clear();
+                break;
+            default:
+                return;
         }
     }
 

@@ -6,7 +6,8 @@ import { BrushPainter } from "../lib/brush";
 import { TailwindElement } from "./tailwind";
 import "./color-palette.element";
 import "./toolbox.element";
-import "./toolbox-button.element"
+import "./toolbox-button.element";
+import "./analytics.element";
 import "iconify-icon";
 import { PencilPainter } from "../lib/pencil";
 import { SprayPainter } from "../lib/spray";
@@ -25,6 +26,9 @@ export class Board extends TailwindElement {
 
     @property({ type: String, attribute: "transport-url"})
     transportURL: string = "";
+
+    @state()
+    clientID: string = "";
 
     @state()
     board: IBoard | null = null;
@@ -53,8 +57,30 @@ export class Board extends TailwindElement {
     @state()
     shareID: string = "";
 
+    @state()
+    showQRDialog: boolean = false; 
+
     // unique client id to differentiate between clients
-    clientID: string = "";
+
+    private renderQRDialog(): TemplateResult {
+        return html`
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white p-6 rounded-lg shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Scan QR Code to Join Board</h3>
+                        <button @click=${() => this.showQRDialog = false} class="text-gray-500 hover:text-gray-700">
+                            <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                        </button>
+                    </div>
+                    <div class="flex justify-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&data=${encodeURIComponent(window.location.href)}" 
+                             alt="QR Code"
+                             class="w-64 h-64">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     renderShareToolbar(): TemplateResult {
         return html`
@@ -63,7 +89,7 @@ export class Board extends TailwindElement {
                     ${window.location.href}
                 </span>
                 <toolbox-group>
-                    <toolbox-button>
+                    <toolbox-button @click=${() => this.showQRDialog = true}>
                         <iconify-icon icon="mdi:qrcode" class="text-lg"></iconify-icon>
                     </toolbox-button>
                     <toolbox-button @click=${() => this.copyToClipboard(window.location.href)}>
@@ -77,6 +103,7 @@ export class Board extends TailwindElement {
 
     render() {
         const shareToolbar = this.showShareToolbar ? this.renderShareToolbar() : '';
+        const qrDialog = this.showQRDialog ? this.renderQRDialog() : '';
 
         return html`
         <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/30 p-2 rounded-lg shadow-lg">
@@ -119,6 +146,8 @@ export class Board extends TailwindElement {
                 </div>
                 <color-palette @color-change=${this.handleColorChange}></color-palette>
             </div>
+            ${qrDialog}
+            <analytics-wrapper></analytics-wrapper>
         </div>
         `;
     }  
@@ -192,8 +221,6 @@ export class Board extends TailwindElement {
             this.height = 3/4 * this.width;
             this.board?.Resize(this.width, this.height, this.width / 800);
         }
-
-        console.log("w", this.width, "h", this.height)
     }
 
     updated(values: Map<string | number | symbol, unknown>) {
