@@ -8,13 +8,20 @@ import "./color-palette.element";
 import "./toolbox.element";
 import "./toolbox-button.element";
 import "./analytics.element";
+import "./size-button.element";
 import "iconify-icon";
 import { PencilPainter } from "../lib/pencil";
 import { SprayPainter } from "../lib/spray";
 import { EraserPainter } from "../lib/eraser";
-import { IBoard, ITransport, PaintEvent } from "../lib/types";
+import { IBoard, IPainter, ITransport, PaintEvent } from "../lib/types";
 import { MQTTTransport } from "../lib/mqqt_transport";
 import { PaintBucketPainter } from "../lib/paint_bucket";
+
+interface PainterButton {
+    name: string;
+    icon: string;
+    painter: IPainter;
+}
 
 @customElement("app-board")
 export class Board extends TailwindElement {
@@ -58,9 +65,28 @@ export class Board extends TailwindElement {
     shareID: string = "";
 
     @state()
-    showQRDialog: boolean = false; 
+    private scale: number = 1;
 
-    // unique client id to differentiate between clients
+    @state()
+    private offsetX: number = 0;
+
+    @state()
+    private offsetY: number = 0;
+
+    @state()
+    showQRDialog: boolean = false;
+
+    @state()
+    painters: PainterButton[] = [];
+
+    @state()
+    isPanningMode: boolean = false;
+
+    private isDragging: boolean = false;
+    private lastX: number = 0;
+    private lastY: number = 0;
+    private pinchStartDistance: number = 0;
+    private interactionMode: 'draw' | 'pan' | 'none' = 'none';
 
     private renderQRDialog(): TemplateResult {
         return html`
@@ -106,51 +132,178 @@ export class Board extends TailwindElement {
         const qrDialog = this.showQRDialog ? this.renderQRDialog() : '';
 
         return html`
-        <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/30 p-2 rounded-lg shadow-lg">
-            <div class="flex flex-col gap-2 ">  
-                <app-toolbox>
-                    <toolbox-group>
-                        <toolbox-button ?active=${this.activeTool === "pencil"} @click=${() => this.changePainter("pencil")}>
-                            <iconify-icon icon="mdi:pencil" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button ?active=${this.activeTool === "brush"} @click=${() => this.changePainter("brush")}>
-                            <iconify-icon icon="mdi:brush" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button ?active=${this.activeTool === "spray"} @click=${() => this.changePainter("spray")}>
-                            <iconify-icon icon="mdi:spray" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button ?active=${this.activeTool === "paint_bucket"} @click=${() => this.changePainter("paint_bucket")}>
-                            <iconify-icon icon="mdi:paint-bucket" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button ?active=${this.activeTool === "eraser"} @click=${() => this.changePainter("eraser")}>
-                            <iconify-icon icon="mdi:eraser" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <input type="range" min="1" max="10" value=${this.strokeSize} @change=${(e: InputEvent) => this.strokeSize = parseInt((e.target as HTMLInputElement)?.value, 10) }>
-                        <span class="px-4 py-1 bg-white">${this.strokeSize}</span>
-                    </toolbox-group>
-                    <toolbox-group>
-                        <toolbox-button @click=${() => this.clearBoard()}>
-                            <iconify-icon icon="mdi:refresh" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button @click=${() => this.exportBoard()}>
-                            <iconify-icon icon="mdi:download" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                        <toolbox-button @click=${() => this.showShareToolbar = !this.showShareToolbar}>
-                            <iconify-icon icon="mdi:share-variant" class="text-lg"></iconify-icon>
-                        </toolbox-button>
-                    </toolbox-group>
-                </app-toolbox> 
-                ${shareToolbar}        
-                <div ${ref(this.containerRef)} class="cursor-crosshair flex justify-center bg-slate-400">
+        <div class="relative h-screen">
+            <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                <div ${ref(this.containerRef)} 
+                     class="cursor-move flex justify-center bg-slate-400"
+                     style="transform: translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})">
                     <canvas ${ref(this.canvasRef)}></canvas>
                 </div>
-                <color-palette @color-change=${this.handleColorChange}></color-palette>
             </div>
+
+            <div class="relative z-10">
+                <div class="w-full flex justify-center p-4">
+                    <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/80 p-2 rounded-lg shadow-lg">
+                        <app-toolbox> 
+                            <toolbox-group class="right-0">
+                                <toolbox-button @click=${() => this.clearBoard()}>
+                                    <iconify-icon icon="mdi:refresh" class="text-lg"></iconify-icon>
+                                </toolbox-button>
+                                <toolbox-button @click=${() => this.exportBoard()}>
+                                    <iconify-icon icon="mdi:download" class="text-lg"></iconify-icon>
+                                </toolbox-button>
+                                <toolbox-button @click=${() => this.showShareToolbar = !this.showShareToolbar}>
+                                    <iconify-icon icon="mdi:share-variant" class="text-lg"></iconify-icon>
+                                </toolbox-button>
+                            </toolbox-group>
+                        </app-toolbox>
+                        ${shareToolbar}
+                    </div>
+                </div>
+            </div>
+
+            <div class="fixed left-4 top-1/2 -translate-y-1/2 z-10">
+                <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/80 p-2 rounded-lg shadow-lg">
+                    <app-toolbox orientation="vertical">
+                        <toolbox-group orientation="vertical">
+                            ${this.painters.map((painter) => html`
+                                <toolbox-button ?active=${this.activeTool === painter.name} @click=${() => this.changePainter(painter.name)}>
+                                    <iconify-icon icon=${painter.icon} class="text-lg"></iconify-icon>
+                                </toolbox-button>
+                            `)}
+                            <toolbox-button ?active=${this.isPanningMode} 
+                                          @click=${() => this.togglePanningMode()}>
+                                <iconify-icon icon="mdi:pan" class="text-lg"></iconify-icon>
+                            </toolbox-button>
+                            <size-button
+                                .size=${this.strokeSize}
+                                @size-change=${this.handleSizeChange}
+                            >
+                            </size-button>
+                        </toolbox-group>
+                    </app-toolbox>
+                </div>
+            </div>
+
+            <div class="fixed bottom-0 w-full flex justify-center p-4 z-10">
+                <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/80 p-2 rounded-lg shadow-lg">
+                    <color-palette @color-change=${this.handleColorChange}></color-palette>
+                </div>
+            </div>
+
             ${qrDialog}
             <analytics-wrapper></analytics-wrapper>
         </div>
         `;
-    }  
+    }
+
+    private togglePanningMode() {
+        this.isPanningMode = !this.isPanningMode;
+        this.interactionMode = this.isPanningMode ? 'pan' : 'draw';
+
+        if (this.containerRef.value) {
+            this.containerRef.value.style.cursor = this.isPanningMode ? 'move' : 'default';
+        }
+
+        if (this.board) {
+            this.board.SetPanningMode(this.isPanningMode);
+        }
+    }
+
+    private handleWheel(e: WheelEvent) {
+        if (this.isPanningMode) {
+            e.preventDefault();        
+
+            const delta = -e.deltaY * 0.001;
+            const newScale = Math.min(Math.max(this.scale + delta, 0.5), 5);
+            const rect = this.containerRef.value?.getBoundingClientRect();
+            
+            if (rect) {
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                this.offsetX += mouseX * (1 - newScale/this.scale);
+                this.offsetY += mouseY * (1 - newScale/this.scale);
+                this.scale = newScale;
+            }    
+            
+            this.requestUpdate();
+        }
+    }
+
+    private handlePointerDown(e: PointerEvent) {
+        if (e.button === 0) {
+            if (this.isPanningMode) {
+                this.interactionMode = 'pan';
+                this.isDragging = true;
+                this.lastX = e.clientX;
+                this.lastY = e.clientY;
+                this.containerRef.value?.setPointerCapture(e.pointerId);
+            }
+        }
+    }
+
+    private handlePointerMove(e: PointerEvent) {
+        if (this.interactionMode === 'pan' && this.isDragging) {
+            const deltaX = e.clientX - this.lastX;
+            const deltaY = e.clientY - this.lastY;
+            
+            this.offsetX += deltaX;
+            this.offsetY += deltaY;
+            
+            this.lastX = e.clientX;
+            this.lastY = e.clientY;
+            
+            this.requestUpdate();
+        }
+    }
+
+    private handlePointerUp(e: PointerEvent) {
+        this.isDragging = false;
+        this.containerRef.value?.releasePointerCapture(e.pointerId);
+    }
+
+    private handleTouchStart(e: TouchEvent) {
+        if (e.touches.length === 2) {
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            this.pinchStartDistance = Math.hypot(
+                touch1.clientX - touch2.clientX,
+                touch1.clientY - touch2.clientY
+            );
+        }
+    }
+
+    private handleTouchMove(e: TouchEvent) {
+        if (e.touches.length === 2) {
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.hypot(
+                touch1.clientX - touch2.clientX,
+                touch1.clientY - touch2.clientY
+            );
+            
+            const delta = currentDistance - this.pinchStartDistance;
+            const newScale = Math.min(Math.max(this.scale + delta * 0.01, 0.5), 5);
+            
+            const rect = this.containerRef.value?.getBoundingClientRect();
+            if (rect) {
+                const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                
+                this.offsetX += centerX * (1 - newScale/this.scale);
+                this.offsetY += centerY * (1 - newScale/this.scale);
+                this.scale = newScale;
+            }
+            
+            this.pinchStartDistance = currentDistance;
+            this.requestUpdate();
+        }
+    }
+
+    private handleSizeChange(e: CustomEvent<number>) {
+        this.strokeSize = e.detail;
+    }
 
     private clearBoard() {
         if (this.board) {
@@ -169,6 +322,13 @@ export class Board extends TailwindElement {
     }
 
     private changePainter(name: string) {
+        if (this.isPanningMode) {
+            this.togglePanningMode();
+        }
+
+        if (this.containerRef.value) {
+            this.containerRef.value.style.cursor = 'default';
+        }
         this.activeTool = name;
         if (this.board) {
             this.board.SetActivePainter(name);
@@ -181,26 +341,55 @@ export class Board extends TailwindElement {
         }
     }
 
+    private getAdjustedCoordinates(x: number, y: number) {
+        // Convert screen coordinates to canvas coordinates
+        const coord = {
+            x: x / this.scale,
+            y: y / this.scale
+        };
+
+        return coord;
+    }
+
     private initBoard() {
         const canvas = this.canvasRef.value;
         if (canvas) {
             let board = new CanvasBoard(canvas);
             board.ChangeBackgroundColor("#ffffff");
             board.OnPaint = (event: PaintEvent) => {
+                // No need to adjust coordinates here anymore since they're already adjusted
                 event.source = this.clientID;
                 this.transport?.Send(event);
             }
+            
+            // Add coordinate transform function to the board
+            board.TransformCoordinates = (x: number, y: number) => {
+                return this.getAdjustedCoordinates(x, y);
+            };
+
             this.board = board;
+        }
+    }
+
+    private registerPainter(name: string, painter: IPainter) {
+        this.painters.push({
+            name: name,
+            icon: `mdi:${name}`,
+            painter: painter
+        });
+
+        if (this.board && this.canvasRef.value) {
+            this.board.RegisterPainter(name, painter);
         }
     }
 
     private registerPainters() {
         if (this.board && this.canvasRef.value) {
-            this.board.RegisterPainter("pencil", new PencilPainter(this.canvasRef.value));
-            this.board.RegisterPainter("brush", new BrushPainter(this.canvasRef.value));
-            this.board.RegisterPainter("spray", new SprayPainter(this.canvasRef.value));
-            this.board.RegisterPainter("paint_bucket", new PaintBucketPainter(this.canvasRef.value));
-            this.board.RegisterPainter("eraser", new EraserPainter(this.canvasRef.value));
+            this.registerPainter("pencil", new PencilPainter(this.canvasRef.value));
+            this.registerPainter("brush", new BrushPainter(this.canvasRef.value));
+            this.registerPainter("spray", new SprayPainter(this.canvasRef.value));
+            this.registerPainter("paint", new PaintBucketPainter(this.canvasRef.value));
+            this.registerPainter("eraser", new EraserPainter(this.canvasRef.value));
         }
 
         if (this.board) {
@@ -243,6 +432,20 @@ export class Board extends TailwindElement {
         this.containerRef.value?.addEventListener('touchstart', (e) => {
             e.preventDefault()
         }, true);
+
+        if (this.containerRef.value) {
+            this.containerRef.value.style.cursor = this.isPanningMode ? 'move' : 'default';
+        }
+
+        const container = this.containerRef.value;
+        if (container) {
+            container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
+            container.addEventListener('pointerdown', this.handlePointerDown.bind(this));
+            container.addEventListener('pointermove', this.handlePointerMove.bind(this));
+            container.addEventListener('pointerup', this.handlePointerUp.bind(this));
+            container.addEventListener('touchstart', this.handleTouchStart.bind(this));
+            container.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        }
     }
 
     disconnectedCallback(): void {

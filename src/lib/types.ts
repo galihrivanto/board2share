@@ -26,10 +26,12 @@ export interface IBoard {
     RegisterPainter(name: string, painter: IPainter): void;
     SetStrokeSize(size: number): void;
     SetActivePainter(name: string): void;
+    SetPanningMode(enabled: boolean): void;
     ApplyPaint(event: PaintEvent): void;
     Clear(): void;
     Resize(width: number, height: number, unit: number): void;
     Export(): void;
+    TransformCoordinates?: (x: number, y: number) => { x: number, y: number };
 }
 
 export interface IPainter {
