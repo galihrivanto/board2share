@@ -1,12 +1,15 @@
 import { html } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { TailwindElement } from "./tailwind";
 
 @customElement("toolbox-group")
 export class ToolboxGroup extends TailwindElement {
+    @property({ type: String })
+    orientation: 'horizontal' | 'vertical' = 'horizontal';
+
     render() {
         return html`
-            <div class="flex flex-row flex-wrap gap-2 items-center">
+            <div class="flex ${this.orientation === 'horizontal' ? 'flex-row' : 'flex-col'} flex-wrap gap-2 items-center">
                 <slot></slot>
             </div>
         `;
@@ -16,9 +19,12 @@ export class ToolboxGroup extends TailwindElement {
 
 @customElement("app-toolbox")
 export class Toolbox extends TailwindElement {
+    @property({ type: String })
+    orientation: 'horizontal' | 'vertical' = 'horizontal';
+
     render() {
         return html`
-            <div class="flex flex-row flex-wrap gap-2 items-center justify-between">
+            <div class="flex ${this.orientation === 'horizontal' ? 'flex-row' : 'flex-col'} flex-wrap gap-2 items-center justify-between">
                 <slot></slot>
             </div>
         `;
@@ -27,5 +33,4 @@ export class Toolbox extends TailwindElement {
     handleClear() {
         this.dispatchEvent(new CustomEvent("clear"));
     }
-
 }

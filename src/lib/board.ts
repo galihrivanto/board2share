@@ -12,7 +12,10 @@ export class CanvasBoard implements IBoard {
     private _strokeState: StrokeState = StrokeState.End;
     private _strokeSize: number = 1;
     private _unit: number = 1;
+    private _panningMode: boolean = false;
+
     OnPaint?: (event: PaintEvent) => void;
+    TransformCoordinates?: (x: number, y: number) => { x: number, y: number };
 
     constructor(element: HTMLCanvasElement){
         this._canvas = element;
@@ -31,38 +34,68 @@ export class CanvasBoard implements IBoard {
     }
 
     private getPointerPosition(e: MouseEvent | Touch) {
-        return {
+        const rawPos = {
             x: e.clientX - this.bounds.left,
             y: e.clientY - this.bounds.top
         };
+
+        if (this.TransformCoordinates) {
+            return this.TransformCoordinates(rawPos.x, rawPos.y);
+        }
+
+        return rawPos;
     }
 
     private setupEventListeners(): void {
         window.addEventListener('mousedown', (e: MouseEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+
             this.strokeStart(e);    
         });
 
 		window.addEventListener('mousemove', (e: MouseEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+
             this.strokeMove(e);
         });
 
 		window.addEventListener('mouseup',(e: MouseEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+            
             this.strokeEnd(e);
         });
 
         window.addEventListener('touchstart', (e: TouchEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+            
             if (e.touches.length == 1) {
                 this.strokeStart(e.touches[0]);
             }
         });
 
         window.addEventListener('touchmove', (e: TouchEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+            
             if (e.touches.length == 1) {
                 this.strokeMove(e.touches[0]);
             }
         });
 
         window.addEventListener('touchend', (e: TouchEvent) => {
+            if (this._panningMode) {
+                return;
+            }
+            
             if (e.touches.length == 1) {
                 this.strokeEnd(e.touches[0]);
             }
@@ -167,6 +200,10 @@ export class CanvasBoard implements IBoard {
             this._activePainter?.SetBackgroundColor(this._backgroundColor);
             this._activePainter?.SetSize(this._strokeSize);
         }
+    }
+
+    SetPanningMode(enabled: boolean): void {
+        this._panningMode = enabled;
     }
 
     ChangeForegroundColor(color: string): void {
