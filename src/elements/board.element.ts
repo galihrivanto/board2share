@@ -135,7 +135,7 @@ export class Board extends TailwindElement {
         <div class="relative h-screen">
             <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <div ${ref(this.containerRef)} 
-                     class="cursor-move flex justify-center bg-slate-400"
+                     class="${this.interactionMode === 'pan' ? 'cursor-move' : 'cursor-default'} flex justify-center bg-slate-400"
                      style="transform: translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})">
                     <canvas ${ref(this.canvasRef)}></canvas>
                 </div>
