@@ -5,6 +5,8 @@ export class SprayPainter extends BasePainter {
         if (this.context) {
             this.context.beginPath();
             this.context.moveTo(x, y);
+            this.lastX = x;
+            this.lastY = y;
         }
     }
 
@@ -20,6 +22,8 @@ export class SprayPainter extends BasePainter {
                     this.context.fillRect(x + offsetX, y + offsetY, 1, 1);
                 }
             }
+            this.lastX = x;
+            this.lastY = y;
         }
     }
 
