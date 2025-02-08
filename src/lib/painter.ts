@@ -6,6 +6,8 @@ export abstract class BasePainter implements IPainter {
     private _foregroundColor: string = "#000000";
     private _backgroundColor: string = "#FFFFFF";
     private _size: number = 1;
+    protected lastX: number = 0;
+    protected lastY: number = 0;
 
     constructor(canvas: HTMLCanvasElement){
         this._canvas = canvas;
@@ -52,5 +54,5 @@ export abstract class BasePainter implements IPainter {
 
     abstract StrokeTo(x: number, y: number): void;
 
-    abstract EndStroke(x: number, y: number): void;    
+    abstract EndStroke(x: number, y: number): void;
 }

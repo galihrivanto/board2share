@@ -135,7 +135,7 @@ export class Board extends TailwindElement {
         <div class="relative h-screen">
             <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <div ${ref(this.containerRef)} 
-                     class="cursor-move flex justify-center bg-slate-400"
+                     class="${this.interactionMode === 'pan' ? 'cursor-move' : 'cursor-default'} flex justify-center bg-slate-400"
                      style="transform: translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})">
                     <canvas ${ref(this.canvasRef)}></canvas>
                 </div>
@@ -232,19 +232,17 @@ export class Board extends TailwindElement {
     }
 
     private handlePointerDown(e: PointerEvent) {
-        if (e.button === 0) {
-            if (this.isPanningMode) {
-                this.interactionMode = 'pan';
-                this.isDragging = true;
-                this.lastX = e.clientX;
-                this.lastY = e.clientY;
-                this.containerRef.value?.setPointerCapture(e.pointerId);
-            }
+        if (this.isPanningMode) {
+            this.interactionMode = 'pan';
+            this.isDragging = true;
+            this.lastX = e.clientX;
+            this.lastY = e.clientY;
+            this.containerRef.value?.setPointerCapture(e.pointerId);
         }
     }
 
     private handlePointerMove(e: PointerEvent) {
-        if (this.interactionMode === 'pan' && this.isDragging) {
+        if (this.isPanningMode && this.isDragging) {
             const deltaX = e.clientX - this.lastX;
             const deltaY = e.clientY - this.lastY;
             
@@ -264,7 +262,7 @@ export class Board extends TailwindElement {
     }
 
     private handleTouchStart(e: TouchEvent) {
-        if (e.touches.length === 2) {
+        if (this.isPanningMode && e.touches.length === 2) {
             const touch1 = e.touches[0];
             const touch2 = e.touches[1];
             this.pinchStartDistance = Math.hypot(
@@ -275,7 +273,7 @@ export class Board extends TailwindElement {
     }
 
     private handleTouchMove(e: TouchEvent) {
-        if (e.touches.length === 2) {
+        if (this.isPanningMode && e.touches.length === 2) {
             const touch1 = e.touches[0];
             const touch2 = e.touches[1];
             const currentDistance = Math.hypot(
@@ -354,7 +352,7 @@ export class Board extends TailwindElement {
     private initBoard() {
         const canvas = this.canvasRef.value;
         if (canvas) {
-            let board = new CanvasBoard(canvas);
+            let board = new CanvasBoard(canvas, this.clientID);
             board.ChangeBackgroundColor("#ffffff");
             board.OnPaint = (event: PaintEvent) => {
                 // No need to adjust coordinates here anymore since they're already adjusted

@@ -2,6 +2,7 @@ import { IBoard, IPainter, PaintEvent, StrokeState } from "./types";
 
 // CanvasBoard is canvas implementation leveraging canvas element
 export class CanvasBoard implements IBoard {
+    private _clientID: string = "";
     private _canvas: HTMLCanvasElement;
     private _painters: Map<string, IPainter> = new Map<string, IPainter>();
     private _activePainterInstances: Map<string, IPainter> = new Map<string, IPainter>();
@@ -17,8 +18,9 @@ export class CanvasBoard implements IBoard {
     OnPaint?: (event: PaintEvent) => void;
     TransformCoordinates?: (x: number, y: number) => { x: number, y: number };
 
-    constructor(element: HTMLCanvasElement){
+    constructor(element: HTMLCanvasElement, clientID: string){
         this._canvas = element;
+        this._clientID = clientID;
         this.clearCanvas(false);
 
         this.setupEventListeners();
@@ -169,6 +171,7 @@ export class CanvasBoard implements IBoard {
         if (!this.OnPaint) return;
 
         const event: PaintEvent = {
+            source: this._clientID,
             painter: this._activePainterName,
             strokeState: state ? state : this._strokeState,
             x: x / this._unit,
@@ -279,10 +282,14 @@ export class CanvasBoard implements IBoard {
         // Get or create painter instance for this source
         const sourceKey = `${event.painter}-${event.source}`;
         let painter = this._activePainterInstances.get(sourceKey);
+
+        console.log(sourceKey)
         
         if (!painter) {
-            // Clone the original painter for this source
-            painter = Object.create(this._painters.get(event.painter)!);
+            // Get the original painter
+            const originalPainter = this._painters.get(event.painter)!;
+            // Create a new instance of the same painter type
+            painter = new (originalPainter.constructor as new (...args: any[]) => IPainter)(this._canvas);
             if (!painter) return;
             
             this._activePainterInstances.set(sourceKey, painter);
