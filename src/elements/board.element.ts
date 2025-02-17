@@ -9,6 +9,7 @@ import "./toolbox.element";
 import "./toolbox-button.element";
 import "./analytics.element";
 import "./size-button.element";
+import "./qr.element";
 import "iconify-icon";
 import { PencilPainter } from "../lib/pencil";
 import { SprayPainter } from "../lib/spray";
@@ -99,9 +100,7 @@ export class Board extends TailwindElement {
                         </button>
                     </div>
                     <div class="flex justify-center">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&data=${encodeURIComponent(window.location.href)}" 
-                             alt="QR Code"
-                             class="w-64 h-64">
+                        <qr-code .text=${window.location.href}></qr-code>
                     </div>
                 </div>
             </div>
@@ -115,7 +114,7 @@ export class Board extends TailwindElement {
                     ${window.location.href}
                 </span>
                 <toolbox-group>
-                    <toolbox-button @click=${() => this.showQRDialog = true}>
+                    <toolbox-button @click=${() => this.showQRDialog = true }>
                         <iconify-icon icon="mdi:qrcode" class="text-lg"></iconify-icon>
                     </toolbox-button>
                     <toolbox-button @click=${() => this.copyToClipboard(window.location.href)}>
@@ -494,5 +493,5 @@ export class Board extends TailwindElement {
           .catch(err => {
             console.error('Failed to copy text: ', err);
           });
-      }
+    }
 }
