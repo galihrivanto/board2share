@@ -20,6 +20,10 @@ export class MQTTTransport<T> implements ITransport {
         this._client.on('connect', () => {
             console.log("Connected to MQTT broker");
 
+            if (this.OnConnected) {
+                this.OnConnected();
+            }
+
             this._client?.subscribe(this._topic, (err) => {
                 if (err) {
                     console.error("Failed to subscribe to topic", this._topic);
@@ -33,7 +37,18 @@ export class MQTTTransport<T> implements ITransport {
                 this.OnReceive(JSON.parse(message.toString()) as T);
             }
         });
-        
+
+        this._client?.on('error', (err) => {
+            if (this.OnError) {
+                this.OnError(err);
+            }
+        });
+
+        this._client?.on('close', () => {
+            if (this.OnDisconnected) {
+                this.OnDisconnected();
+            }
+        });
     }
 
     Disconnect(): void {
@@ -46,5 +61,11 @@ export class MQTTTransport<T> implements ITransport {
         }
     }
 
-    OnReceive?: ((data: T) => void);    
+    OnReceive?: ((data: T) => void);
+    
+    OnError?: ((err: Error) => void);
+
+    OnConnected?: (() => void);
+
+    OnDisconnected?: (() => void);
 }

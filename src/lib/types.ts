@@ -48,4 +48,7 @@ export interface ITransport {
     Disconnect(): void;
     Send(data: any): void;
     OnReceive?: (data: any) => void;
+    OnError?: (err: Error) => void;
+    OnConnected?: () => void;
+    OnDisconnected?: () => void;
 }

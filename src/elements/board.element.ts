@@ -83,6 +83,9 @@ export class Board extends TailwindElement {
     @state()
     isPanningMode: boolean = false;
 
+    @state()
+    isConnected: boolean = false;
+
     private isDragging: boolean = false;
     private lastX: number = 0;
     private lastY: number = 0;
@@ -187,6 +190,12 @@ export class Board extends TailwindElement {
             <div class="fixed bottom-0 w-full flex justify-center p-4 z-10">
                 <div class="contain backdrop-blur-none lg:backdrop-blur-sm bg-white/80 p-2 rounded-lg shadow-lg">
                     <color-palette @color-change=${this.handleColorChange}></color-palette>
+                </div>
+            </div>
+
+            <div class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50 ${this.isConnected ? 'hidden' : ''}">
+                <div class="bg-white p-6 rounded-lg shadow-xl">
+                    <span class="text-lg font-semibold">Connecting to board...</span>
                 </div>
             </div>
 
@@ -464,6 +473,12 @@ export class Board extends TailwindElement {
             if (this.board && data.source !== this.clientID) {
                 this.board.ApplyPaint?.(data);
             }
+        }
+        this.transport.OnConnected = () => {
+            this.isConnected = true;
+        }
+        this.transport.OnDisconnected = () => {
+            this.isConnected = false;
         }
     }
 
